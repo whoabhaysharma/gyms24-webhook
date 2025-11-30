@@ -9,6 +9,7 @@ class BackendService {
     constructor() {
         this.baseUrl = config.backend.url;
         this.secret = config.backend.secret;
+        this.apiKey = config.backend.apiKey;
     }
 
     /**
@@ -17,6 +18,7 @@ class BackendService {
     getHeaders() {
         return {
             'x-whatsapp-secret': this.secret,
+            'x-api-key': this.apiKey,
             'Content-Type': 'application/json'
         };
     }

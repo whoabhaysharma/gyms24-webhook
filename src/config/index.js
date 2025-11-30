@@ -13,6 +13,7 @@ module.exports = {
     backend: {
         url: process.env.BACKEND_URL || 'http://localhost:3000/api/whatsapp',
         secret: process.env.BACKEND_SECRET || 'my-secret-key',
+        apiKey: process.env.BACKEND_API_KEY,
     },
 
     // Server Configuration
