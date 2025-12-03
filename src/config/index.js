@@ -20,5 +20,11 @@ module.exports = {
     server: {
         port: process.env.PORT || 3000,
         env: process.env.NODE_ENV || 'development',
+    },
+
+    // Redis Configuration
+    redis: {
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
     }
 };

@@ -239,6 +239,22 @@ Show your access code at the gym entrance!`
         };
         await this.sendMessage(payload);
     }
+    /**
+     * Send OTP
+     */
+    async sendOtp(to, otp) {
+        const payload = {
+            messaging_product: "whatsapp",
+            to,
+            type: "text",
+            text: {
+                body: `🔐 Your OTP is: *${otp}*
+
+This code is valid for 5 minutes. Do not share it with anyone.`
+            }
+        };
+        await this.sendMessage(payload);
+    }
 }
 
 module.exports = new WhatsAppService();

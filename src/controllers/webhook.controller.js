@@ -2,6 +2,8 @@ const config = require('../config');
 const whatsappService = require('../services/whatsapp.service');
 const logger = require('../utils/logger');
 
+const redis = require('../utils/redis');
+
 /**
  * Webhook Controller - Handles incoming WhatsApp webhook requests
  */
@@ -69,6 +71,21 @@ class WebhookController {
             await whatsappService.sendWelcomeMessage(from);
         } else if (normalizedText === "status") {
             await whatsappService.sendSubscriptionStatus(from);
+        } else if (normalizedText === "/otp" || normalizedText === "otp") {
+            // Backend stores OTP against 10-digit number
+            const phoneNumber = from.slice(-10);
+            const otp = await redis.get(`otp:${phoneNumber}`);
+
+            if (otp) {
+                await whatsappService.sendOtp(from, otp);
+            } else {
+                await whatsappService.sendMessage({
+                    messaging_product: "whatsapp",
+                    to: from,
+                    type: "text",
+                    text: { body: "❌ No active OTP found. Please request a new one from the app." }
+                });
+            }
         }
     }
 
