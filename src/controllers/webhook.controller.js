@@ -113,7 +113,7 @@ class WebhookController {
             if (parts.length >= 3) {
                 const gymId = parts[1];
                 const planId = parts[2];
-                await whatsappService.sendPaymentCTA(from, gymId, planId);
+                await whatsappService.sendBookingLink(from, gymId, planId);
             }
         }
     }

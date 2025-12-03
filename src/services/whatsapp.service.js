@@ -2,6 +2,7 @@ const axios = require('axios');
 const config = require('../config');
 const logger = require('../utils/logger');
 const backendService = require('./backend.service');
+const { formatCurrency } = require('../utils/formatter');
 
 /**
  * WhatsApp Service - Handles all WhatsApp messaging operations
@@ -32,6 +33,18 @@ class WhatsAppService {
      * Send welcome message with action buttons
      */
     async sendWelcomeMessage(to) {
+        const magicLink = await backendService.getMagicLink(to);
+
+        if (!magicLink) {
+            await this.sendMessage({
+                messaging_product: "whatsapp",
+                to,
+                type: "text",
+                text: { body: "Sorry, I couldn't generate a booking link right now. Please try again later. 😓" }
+            });
+            return;
+        }
+
         const payload = {
             messaging_product: "whatsapp",
             to,
@@ -39,20 +52,16 @@ class WhatsAppService {
             interactive: {
                 type: "button",
                 body: {
-                    text: `👋 Hey there! Ready to crush your fitness goals?  
-I can help you book a gym instantly. 💪  
+                    text: `👋 Hey there! Ready to crush your fitness goals?
+                    
+🚀 *Book a Gym Instantly*
+Click the link below to select a gym, plan, and pay in one go:
+${magicLink}
 
-Tap below to get started!`
+👇 Or check your current status below:`
                 },
                 action: {
                     buttons: [
-                        {
-                            type: "reply",
-                            reply: {
-                                id: "start_booking",
-                                title: "🔥 Book a Gym"
-                            }
-                        },
                         {
                             type: "reply",
                             reply: {
@@ -130,7 +139,7 @@ Tap below to get started!`
         const rows = plans.slice(0, 10).map(p => ({
             id: `plan_${gymId}_${p.id}`,
             title: p.name.substring(0, 24),
-            description: `₹${p.price} - ${p.durationValue} ${p.durationUnit}`.substring(0, 72)
+            description: `${formatCurrency(p.price)} - ${p.durationValue} ${p.durationUnit}`.substring(0, 72)
         }));
 
         const payload = {
@@ -159,22 +168,24 @@ Select a membership plan:`
     }
 
     /**
-     * Send payment CTA with Razorpay link
+     * Send booking link (Magic Link)
      */
-    async sendPaymentCTA(to, gymId, planId) {
-        const result = await backendService.createSubscription(to, gymId, planId);
+    async sendBookingLink(to, gymId, planId) {
+        const magicLink = await backendService.getMagicLink(to);
 
-        if (!result) {
+        if (!magicLink) {
             await this.sendMessage({
                 messaging_product: "whatsapp",
                 to,
                 type: "text",
-                text: { body: "Oops! Something went wrong creating your subscription. Please try again later. 😓" }
+                text: { body: "Oops! Something went wrong generating your booking link. Please try again later. 😓" }
             });
             return;
         }
 
-        const { paymentLink } = result;
+        // Append gymId and planId to the magic link
+        // The magic link already has ?token=... so we use &
+        const bookingLink = `${magicLink}&gymId=${gymId}&planId=${planId}`;
 
         const payload = {
             messaging_product: "whatsapp",
@@ -185,20 +196,20 @@ Select a membership plan:`
                 type: "cta_url",
                 header: {
                     type: "text",
-                    text: `Pay for Membership`
+                    text: `Complete Your Booking`
                 },
                 body: {
-                    text: `You're just *one step away*! 😍  
-Tap the button below to pay securely via Razorpay.`
+                    text: `You're almost there! 🚀  
+Tap the button below to review your plan and pay securely.`
                 },
                 footer: {
-                    text: "⚡ Instant activation after payment"
+                    text: "⚡ Secure payment via Razorpay"
                 },
                 action: {
                     name: "cta_url",
                     parameters: {
-                        display_text: "💳 Pay Now",
-                        url: paymentLink.short_url
+                        display_text: "💳 Pay & Join",
+                        url: bookingLink
                     }
                 }
             }

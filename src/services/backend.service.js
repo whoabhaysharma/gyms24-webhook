@@ -88,6 +88,22 @@ class BackendService {
             return null;
         }
     }
+    /**
+     * Get magic link for a user
+     */
+    async getMagicLink(mobile) {
+        try {
+            const response = await axios.post(`${this.baseUrl}/auth/magic-link`, {
+                phoneNumber: mobile
+            }, {
+                headers: this.getHeaders()
+            });
+            return response.data.data.magicLink;
+        } catch (error) {
+            logger.error('Error getting magic link:', error.response ? error.response.data : error.message);
+            return null;
+        }
+    }
 }
 
 module.exports = new BackendService();
