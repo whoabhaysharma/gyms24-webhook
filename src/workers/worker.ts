@@ -2,6 +2,7 @@ import { Worker } from 'bullmq';
 import { connection } from '../queues/connection';
 import { QUEUE_NAME } from '../queues/messageQueue';
 import { processJob } from './processor';
+import { startNotificationWorker } from './notificationWorker';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,6 +13,9 @@ const worker = new Worker(QUEUE_NAME, processJob, {
     connection,
     concurrency: 5, // Adjust based on load
 });
+
+// Start the notification worker
+const notificationWorker = startNotificationWorker();
 
 worker.on('completed', (job) => {
     console.log(`[Worker] Job ${job.id} completed successfully!`);

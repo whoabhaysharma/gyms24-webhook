@@ -20,44 +20,43 @@ export const handleButtonClick = async (from: string, buttonId: string, name: st
 };
 
 const handleBookMembership = async (from: string, originalFrom: string) => {
+    // 1. Get Magic Link
     const magicLink = await BackendService.getMagicLink(from);
+
     if (magicLink) {
+        // 2. Send Magic Link via CTA Button
         const messageContent = Templates.createCTAUrlContent(
-            `Great choice! 🎉\n\nClick the button below to securely book your membership.`,
-            'Book Membership',
+            `Great! 🏋️‍♂️\n\nClick the button below to browse gyms, choose a plan, and book your membership securely.`,
+            'Book Now',
             magicLink,
-            'Start Your Fitness Journey',
+            'Secure Booking',
             'Gyms24'
         );
         await WhatsAppService.sendMessage(originalFrom, messageContent);
-
-        // Simulate successful booking after a short delay (for testing)
-        // This should be removed or moved to a separate testing flow in production
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        const mockAccessCode = Math.floor(100000 + Math.random() * 900000);
-        await WhatsAppService.sendMessage(
-            originalFrom,
-            `Payment Successful! 🎉\n\nYour membership is now active.\n\n🔑 *Access Code: ${mockAccessCode}*\n\nYou can also view this code anytime by clicking "My Memberships".`
-        );
     } else {
+        // Fallback if magic link fails
         await WhatsAppService.sendMessage(originalFrom, 'Sorry, we could not generate a booking link at this time. Please try again later.');
     }
 };
 
 const handleMyMemberships = async (from: string, name: string, originalFrom: string) => {
     const user = await BackendService.getUserByMobile(from);
+
     if (!user) {
         await WhatsAppService.sendMessage(originalFrom, 'We could not find an account associated with this number. Please book a membership first!');
+        return;
+    }
+
+    const subscriptions = await BackendService.getSubscriptions(user.id);
+
+    if (subscriptions.length > 0) {
+        let response = `*Active Memberships for ${name}:*\n\n`;
+        subscriptions.forEach((sub) => {
+            const endDate = new Date(sub.endDate).toLocaleDateString();
+            response += `🏋️ *${sub.gym.name}*\n📦 Plan: ${sub.plan.name}\n📅 Expires: ${endDate}\n🔑 Access Code: *${sub.accessCode}*\n\n`;
+        });
+        await WhatsAppService.sendMessage(originalFrom, response);
     } else {
-        const subscriptions = await BackendService.getSubscriptions(user.id);
-        if (subscriptions.length > 0) {
-            let response = `*Active Memberships for ${name}:*\n\n`;
-            subscriptions.forEach((sub) => {
-                response += `🏋️ *${sub.gym.name}* - ${sub.plan.name}\n📅 Ends: ${new Date(sub.endDate).toLocaleDateString()}\n🔑 Access Code: *${sub.accessCode}*\n\n`;
-            });
-            await WhatsAppService.sendMessage(originalFrom, response);
-        } else {
-            await WhatsAppService.sendMessage(originalFrom, 'You have no active memberships.');
-        }
+        await WhatsAppService.sendMessage(originalFrom, 'You have no active memberships. Click "Book Membership" to get started!');
     }
 };
