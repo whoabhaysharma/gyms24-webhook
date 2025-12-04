@@ -33,6 +33,7 @@ class WhatsAppService {
      * Send welcome message with action buttons
      */
     async sendWelcomeMessage(to) {
+        logger.log(`Sending welcome message to: ${to}`);
         const magicLink = await backendService.getMagicLink(to);
 
         if (!magicLink) {
@@ -80,7 +81,9 @@ ${magicLink}
      * Send list of available gyms
      */
     async sendGymList(to) {
+        logger.log(`Fetching and sending gym list to: ${to}`);
         const gyms = await backendService.getGyms();
+        logger.log(`Found ${gyms.length} gyms`);
 
         if (gyms.length === 0) {
             await this.sendMessage({
@@ -124,7 +127,9 @@ ${magicLink}
      * Send list of plans for a gym
      */
     async sendPlanList(to, gymId) {
+        logger.log(`Fetching plans for gym ${gymId} for user: ${to}`);
         const plans = await backendService.getPlans(gymId);
+        logger.log(`Found ${plans.length} plans for gym ${gymId}`);
 
         if (plans.length === 0) {
             await this.sendMessage({
@@ -171,6 +176,7 @@ Select a membership plan:`
      * Send booking link (Magic Link)
      */
     async sendBookingLink(to, gymId, planId) {
+        logger.log(`Generating booking link for gym ${gymId}, plan ${planId}, user: ${to}`);
         const magicLink = await backendService.getMagicLink(to);
 
         if (!magicLink) {
@@ -221,6 +227,7 @@ Tap the button below to review your plan and pay securely.`
      * Send subscription status
      */
     async sendSubscriptionStatus(to) {
+        logger.log(`Checking subscription status for: ${to}`);
         const sub = await backendService.checkSubscription(to);
 
         if (!sub) {
@@ -254,6 +261,7 @@ Show your access code at the gym entrance!`
      * Send OTP
      */
     async sendOtp(to, otp) {
+        logger.log(`Sending OTP to: ${to}`);
         const payload = {
             messaging_product: "whatsapp",
             to,

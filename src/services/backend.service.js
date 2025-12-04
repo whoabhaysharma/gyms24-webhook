@@ -31,7 +31,10 @@ class BackendService {
             const response = await axios.get(`${this.baseUrl}/gyms`, {
                 headers: this.getHeaders()
             });
-            return response.data.data || [];
+            const data = response.data.data;
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.data)) return data.data;
+            return [];
         } catch (error) {
             logger.error('Error fetching gyms:', error.message);
             return [];
@@ -47,7 +50,10 @@ class BackendService {
                 params: { gymId },
                 headers: this.getHeaders()
             });
-            return response.data.data || [];
+            const data = response.data.data;
+            if (Array.isArray(data)) return data;
+            if (data && Array.isArray(data.data)) return data.data;
+            return [];
         } catch (error) {
             logger.error('Error fetching plans:', error.message);
             return [];
