@@ -34,17 +34,6 @@ class WhatsAppService {
      */
     async sendWelcomeMessage(to) {
         logger.log(`Sending welcome message to: ${to}`);
-        const magicLink = await backendService.getMagicLink(to);
-
-        if (!magicLink) {
-            await this.sendMessage({
-                messaging_product: "whatsapp",
-                to,
-                type: "text",
-                text: { body: "Sorry, I couldn't generate a booking link right now. Please try again later. 😓" }
-            });
-            return;
-        }
 
         const payload = {
             messaging_product: "whatsapp",
@@ -52,22 +41,27 @@ class WhatsAppService {
             type: "interactive",
             interactive: {
                 type: "button",
+                header: {
+                    type: "text",
+                    text: "Welcome to Gym Manager! 🏋️‍♂️"
+                },
                 body: {
-                    text: `👋 Hey there! Ready to crush your fitness goals?
-                    
-🚀 *Book a Gym Instantly*
-Click the link below to select a gym, plan, and pay in one go:
-${magicLink}
-
-👇 Or check your current status below:`
+                    text: "Ready to get fit? Choose an option below to get started:"
                 },
                 action: {
                     buttons: [
                         {
                             type: "reply",
                             reply: {
+                                id: "buy_membership",
+                                title: "Buy Membership"
+                            }
+                        },
+                        {
+                            type: "reply",
+                            reply: {
                                 id: "check_status",
-                                title: "📋 My Status"
+                                title: "My Status"
                             }
                         }
                     ]
@@ -270,6 +264,52 @@ Show your access code at the gym entrance!`
                 body: `🔐 Your OTP is: *${otp}*
 
 This code is valid for 5 minutes. Do not share it with anyone.`
+            }
+        };
+        await this.sendMessage(payload);
+    }
+
+    /**
+     * Send generic booking CTA
+     */
+    async sendBookingCTA(to) {
+        logger.log(`Sending booking CTA to: ${to}`);
+        const magicLink = await backendService.getMagicLink(to);
+
+        if (!magicLink) {
+            await this.sendMessage({
+                messaging_product: "whatsapp",
+                to,
+                type: "text",
+                text: { body: "Sorry, I couldn't generate a booking link right now. Please try again later. 😓" }
+            });
+            return;
+        }
+
+        const payload = {
+            messaging_product: "whatsapp",
+            recipient_type: "individual",
+            to,
+            type: "interactive",
+            interactive: {
+                type: "cta_url",
+                header: {
+                    type: "text",
+                    text: "Book Your Membership"
+                },
+                body: {
+                    text: "Click the button below to browse gyms, select a plan, and complete your purchase securely."
+                },
+                footer: {
+                    text: "Powered by Gyms24"
+                },
+                action: {
+                    name: "cta_url",
+                    parameters: {
+                        display_text: "Book Now",
+                        url: magicLink
+                    }
+                }
             }
         };
         await this.sendMessage(payload);

@@ -75,11 +75,11 @@ async function runSimulation() {
         text: { body: "Hi" }
     }), mockRes);
 
-    console.log("\n>>> SIMULATION 2: User clicks 'Book a Gym' (Button Reply)");
+    console.log("\n>>> SIMULATION 2: User clicks 'Buy Membership' (Button Reply)");
     await webhookController.handleIncomingMessage(createMockReq({
         from: userPhone,
         interactive: {
-            button_reply: { id: "start_booking" }
+            button_reply: { id: "buy_membership" }
         }
     }), mockRes);
 

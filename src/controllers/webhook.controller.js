@@ -97,6 +97,8 @@ class WebhookController {
             await whatsappService.sendGymList(from);
         } else if (buttonId === "check_status") {
             await whatsappService.sendSubscriptionStatus(from);
+        } else if (buttonId === "buy_membership") {
+            await whatsappService.sendBookingCTA(from);
         }
     }
 
