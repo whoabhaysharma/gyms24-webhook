@@ -7,12 +7,14 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-# using npm ci for cleaner, faster, and more reliable installs in CI/CD/Docker
-RUN npm ci --only=production
+# Install dependencies (including devDependencies for building)
+RUN npm install
 
 # Copy application code
 COPY . .
+
+# Build the TypeScript project
+RUN npm run build
 
 # Expose the port the app runs on
 EXPOSE 3000
