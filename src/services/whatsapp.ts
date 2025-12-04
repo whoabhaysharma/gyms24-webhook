@@ -1,23 +1,18 @@
 import axios from 'axios';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const WHATSAPP_TOKEN = process.env.API_KEY;
-const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const API_VERSION = 'v24.0'; // Or whatever version you are using
+import { config } from '../config/config';
+import { logWithContext } from '../utils/logger';
 
 const client = axios.create({
-    baseURL: `https://graph.facebook.com/${API_VERSION}/${PHONE_NUMBER_ID}`,
+    baseURL: `${config.whatsapp.baseUrl}/${config.whatsapp.apiVersion}/${config.whatsapp.phoneNumberId}`,
     headers: {
-        Authorization: `Bearer ${WHATSAPP_TOKEN}`,
+        Authorization: `Bearer ${config.whatsapp.token}`,
         'Content-Type': 'application/json',
     },
 });
 
 export const sendMessage = async (to: string, content: string | any) => {
     try {
-        console.log(`[WhatsAppService] Sending message to: ${to}`);
+        logWithContext('WhatsAppService', `Sending message to: ${to}`, { content });
         const payload: any = {
             messaging_product: 'whatsapp',
             to,
@@ -31,26 +26,25 @@ export const sendMessage = async (to: string, content: string | any) => {
         }
 
         const response = await client.post('/messages', payload);
-        console.log(`[WhatsAppService] Message sent successfully. ID: ${response.data.messages?.[0]?.id}`);
+        logWithContext('WhatsAppService', `Message sent successfully`, { messageId: response.data.messages?.[0]?.id });
         return response.data;
     } catch (error: any) {
-        console.error('[WhatsAppService] Error sending WhatsApp message:', error.response?.data || error.message);
+        logWithContext('WhatsAppService', 'Error sending WhatsApp message', { error: error.response?.data || error.message }, 'error');
         throw error;
     }
 };
 
 export const markAsRead = async (messageId: string) => {
     try {
-        console.log(`[WhatsAppService] Marking message as read: ${messageId}`);
+        logWithContext('WhatsAppService', `Marking message as read: ${messageId}`);
         await client.post('/messages', {
             messaging_product: 'whatsapp',
             status: 'read',
             message_id: messageId,
         });
-        console.log(`[WhatsAppService] Message marked as read`);
+        logWithContext('WhatsAppService', `Message marked as read`);
     } catch (error: any) {
-        console.error('[WhatsAppService] Error marking message as read:', error.response?.data || error.message);
-        // Don't throw here, it's not critical
+        logWithContext('WhatsAppService', 'Error marking message as read', { error: error.response?.data || error.message }, 'warn');
     }
 };
 
@@ -75,6 +69,44 @@ export const sendInteractiveButtons = async (to: string, bodyText: string, butto
             },
         },
     };
+
+    return sendMessage(to, payload);
+};
+
+export const sendInteractiveUrlButton = async (to: string, bodyText: string, buttonText: string, url: string, headerText?: string, footerText?: string) => {
+    // This function is kept for backward compatibility but delegates to sendMessage
+    // Ideally, use Templates.createCTAUrlContent and then sendMessage
+    const payload: any = {
+        messaging_product: 'whatsapp',
+        to,
+        type: 'interactive',
+        interactive: {
+            type: 'cta_url',
+            body: {
+                text: bodyText,
+            },
+            action: {
+                name: 'cta_url',
+                parameters: {
+                    display_text: buttonText,
+                    url: url,
+                },
+            },
+        },
+    };
+
+    if (headerText) {
+        payload.interactive.header = {
+            type: 'text',
+            text: headerText,
+        };
+    }
+
+    if (footerText) {
+        payload.interactive.footer = {
+            text: footerText,
+        };
+    }
 
     return sendMessage(to, payload);
 };

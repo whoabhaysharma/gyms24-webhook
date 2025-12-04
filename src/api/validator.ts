@@ -17,6 +17,8 @@ export const verifyWebhook = async (request: FastifyRequest, reply: FastifyReply
             } else {
                 return reply.status(403).send('Verification failed');
             }
+        } else {
+            return reply.status(400).send('Missing mode or token');
         }
     }
 
