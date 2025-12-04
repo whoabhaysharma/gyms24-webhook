@@ -44,8 +44,9 @@ export class RealBackendService implements IBackendService {
             const response = await this.client.get('/users', {
                 params: { search: mobile, role: 'USER' }
             });
-            if (response.data.data && response.data.data.length > 0) {
-                return response.data.data[0];
+            // Response structure: { success: true, data: { data: [users], meta: ... } }
+            if (response.data.data && response.data.data.data && response.data.data.data.length > 0) {
+                return response.data.data.data[0];
             }
             return null;
         } catch (error: any) {
@@ -60,7 +61,8 @@ export class RealBackendService implements IBackendService {
             const response = await this.client.get('/subscriptions', {
                 params: { userId, status: 'ACTIVE' }
             });
-            return response.data.data || [];
+            // Response structure: { success: true, data: { data: [subs], meta: ... } }
+            return response.data.data?.data || [];
         } catch (error: any) {
             logWithContext('RealBackend', 'Error fetching subscriptions', { error: error.message }, 'error');
             return [];
