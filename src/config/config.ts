@@ -17,7 +17,7 @@ export const config = {
 
     backend: {
         url: process.env.BACKEND_URL || 'http://localhost:3000/api',
-        apiKey: process.env.BACKEND_API_KEY,
+        internalSecret: process.env.INTERNAL_SECRET, // Shared secret for internal communication
         useMock: process.env.USE_MOCK_BACKEND === 'true', // Feature flag for mock backend
     },
 

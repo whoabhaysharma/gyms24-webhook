@@ -10,7 +10,7 @@ export class RealBackendService implements IBackendService {
         this.client = axios.create({
             baseURL: config.backend.url,
             headers: {
-                'x-api-key': config.backend.apiKey,
+                'x-internal-secret': config.backend.internalSecret,
                 'Content-Type': 'application/json',
             },
         });
