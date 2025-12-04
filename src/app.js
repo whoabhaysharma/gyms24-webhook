@@ -25,6 +25,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/webhook', webhookRoutes);
+app.use('/internal', require('./routes/internal/notification.routes'));
 
 // Error handling
 app.use(notFoundHandler);
