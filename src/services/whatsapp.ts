@@ -17,6 +17,7 @@ const client = axios.create({
 
 export const sendMessage = async (to: string, content: string | any) => {
     try {
+        console.log(`[WhatsAppService] Sending message to: ${to}`);
         const payload: any = {
             messaging_product: 'whatsapp',
             to,
@@ -30,22 +31,50 @@ export const sendMessage = async (to: string, content: string | any) => {
         }
 
         const response = await client.post('/messages', payload);
+        console.log(`[WhatsAppService] Message sent successfully. ID: ${response.data.messages?.[0]?.id}`);
         return response.data;
-    } catch (error) {
-        console.error('Error sending WhatsApp message:', error);
+    } catch (error: any) {
+        console.error('[WhatsAppService] Error sending WhatsApp message:', error.response?.data || error.message);
         throw error;
     }
 };
 
 export const markAsRead = async (messageId: string) => {
     try {
+        console.log(`[WhatsAppService] Marking message as read: ${messageId}`);
         await client.post('/messages', {
             messaging_product: 'whatsapp',
             status: 'read',
             message_id: messageId,
         });
-    } catch (error) {
-        console.error('Error marking message as read:', error);
+        console.log(`[WhatsAppService] Message marked as read`);
+    } catch (error: any) {
+        console.error('[WhatsAppService] Error marking message as read:', error.response?.data || error.message);
         // Don't throw here, it's not critical
     }
+};
+
+export const sendInteractiveButtons = async (to: string, bodyText: string, buttons: { id: string; title: string }[]) => {
+    const payload = {
+        messaging_product: 'whatsapp',
+        to,
+        type: 'interactive',
+        interactive: {
+            type: 'button',
+            body: {
+                text: bodyText,
+            },
+            action: {
+                buttons: buttons.map((btn) => ({
+                    type: 'reply',
+                    reply: {
+                        id: btn.id,
+                        title: btn.title,
+                    },
+                })),
+            },
+        },
+    };
+
+    return sendMessage(to, payload);
 };

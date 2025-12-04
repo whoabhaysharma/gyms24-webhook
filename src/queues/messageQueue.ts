@@ -18,6 +18,7 @@ export const messageQueue = new Queue<QueueJobData>(QUEUE_NAME, {
 });
 
 export const addMessageToQueue = async (data: QueueJobData['payload']) => {
+    console.log(`[MessageQueue] Adding message to queue. Type: incoming_message`);
     await messageQueue.add('incoming_message', {
         type: 'incoming_message',
         payload: data,

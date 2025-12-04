@@ -28,8 +28,9 @@ export default async function routes(fastify: FastifyInstance) {
             ) {
                 // Valid message, add to queue
                 try {
+                    console.log(`[API] Valid message received. Adding to queue.`);
                     await addMessageToQueue(body);
-                    console.log('Message added to queue');
+                    console.log('[API] Message successfully added to queue');
                     return reply.status(200).send('EVENT_RECEIVED');
                 } catch (error) {
                     console.error('Error adding to queue:', error);

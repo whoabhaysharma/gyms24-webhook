@@ -2,6 +2,7 @@ import Fastify from 'fastify';
 import dotenv from 'dotenv';
 import routes from './routes';
 import '../workers/notificationWorker'; // Initialize notification worker
+import '../workers/worker'; // Initialize message processing worker
 
 dotenv.config();
 

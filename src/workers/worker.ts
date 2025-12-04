@@ -14,11 +14,11 @@ const worker = new Worker(QUEUE_NAME, processJob, {
 });
 
 worker.on('completed', (job) => {
-    console.log(`Job ${job.id} completed!`);
+    console.log(`[Worker] Job ${job.id} completed successfully!`);
 });
 
 worker.on('failed', (job, err) => {
-    console.log(`Job ${job?.id} failed with ${err.message}`);
+    console.error(`[Worker] Job ${job?.id} failed with error: ${err.message}`);
 });
 
 // Graceful shutdown
