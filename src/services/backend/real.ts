@@ -16,10 +16,18 @@ export class RealBackendService implements IBackendService {
         });
     }
 
+    private formatPhoneNumber(mobile: string): string {
+        if (mobile.startsWith('91') && mobile.length === 12) {
+            return mobile.substring(2);
+        }
+        return mobile;
+    }
+
     async processUserMessage(from: string, message: string, name: string): Promise<any> {
         try {
             logWithContext('RealBackend', `Processing user message from: ${from}`);
-            const response = await this.client.post('/whatsapp/process', { from, message, name });
+            const formattedFrom = this.formatPhoneNumber(from);
+            const response = await this.client.post('/whatsapp/process', { from: formattedFrom, message, name });
             return response.data;
         } catch (error: any) {
             logWithContext('RealBackend', 'Error processing message', { error: error.message }, 'error');
@@ -30,7 +38,8 @@ export class RealBackendService implements IBackendService {
     async getMagicLink(phoneNumber: string): Promise<string | null> {
         try {
             logWithContext('RealBackend', `Fetching magic link for: ${phoneNumber}`);
-            const response = await this.client.post('/auth/magic-link', { phoneNumber });
+            const formattedPhoneNumber = this.formatPhoneNumber(phoneNumber);
+            const response = await this.client.post('/auth/magic-link', { phoneNumber: formattedPhoneNumber });
             return response.data.data.magicLink;
         } catch (error: any) {
             logWithContext('RealBackend', 'Error fetching magic link', { error: error.message }, 'error');
@@ -41,14 +50,15 @@ export class RealBackendService implements IBackendService {
     async getUserByMobile(mobile: string): Promise<User | null> {
         try {
             logWithContext('RealBackend', `Fetching user by mobile: ${mobile}`);
+            const formattedMobile = this.formatPhoneNumber(mobile);
             const response = await this.client.get('/users', {
-                params: { search: mobile, role: 'USER' }
+                params: { search: formattedMobile, role: 'USER' }
             });
             // Response structure: { success: true, data: { data: [users], meta: ... } }
             if (response.data.data && response.data.data.data && response.data.data.data.length > 0) {
                 const users = response.data.data.data;
                 // Find exact match
-                const exactMatch = users.find((u: User) => u.mobileNumber === mobile);
+                const exactMatch = users.find((u: User) => u.mobileNumber === formattedMobile);
                 if (exactMatch) {
                     return exactMatch;
                 }
