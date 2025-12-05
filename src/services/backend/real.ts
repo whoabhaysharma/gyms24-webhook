@@ -24,15 +24,11 @@ export class RealBackendService implements IBackendService {
     }
 
     async processUserMessage(from: string, message: string, name: string): Promise<any> {
-        try {
-            logWithContext('RealBackend', `Processing user message from: ${from}`);
-            const formattedFrom = this.formatPhoneNumber(from);
-            const response = await this.client.post('/whatsapp/process', { from: formattedFrom, message, name });
-            return response.data;
-        } catch (error: any) {
-            logWithContext('RealBackend', 'Error processing message', { error: error.message }, 'error');
-            throw error;
-        }
+        // The backend does not have a generic /whatsapp/process endpoint.
+        // Logic is handled by the webhook handlers (textHandler, buttonHandler).
+        // This method is kept for interface compliance but does nothing.
+        logWithContext('RealBackend', `processUserMessage called for ${from} (No-op)`);
+        return null;
     }
 
     async getMagicLink(phoneNumber: string): Promise<string | null> {
@@ -51,18 +47,20 @@ export class RealBackendService implements IBackendService {
         try {
             logWithContext('RealBackend', `Fetching user by mobile: ${mobile}`);
             const formattedMobile = this.formatPhoneNumber(mobile);
+
             const response = await this.client.get('/users', {
                 params: { search: formattedMobile, role: 'USER' }
             });
+
             // Response structure: { success: true, data: { data: [users], meta: ... } }
-            if (response.data.data && response.data.data.data && response.data.data.data.length > 0) {
+            if (response.data.success && response.data.data && response.data.data.data && response.data.data.data.length > 0) {
                 const users = response.data.data.data;
                 // Find exact match
                 const exactMatch = users.find((u: User) => u.mobileNumber === formattedMobile);
                 if (exactMatch) {
                     return exactMatch;
                 }
-                // Fallback to first result if no exact match (though exact match is preferred)
+                // Fallback to first result
                 return users[0];
             }
             return null;
@@ -78,8 +76,9 @@ export class RealBackendService implements IBackendService {
             const response = await this.client.get('/subscriptions', {
                 params: { userId, status: 'ACTIVE' }
             });
-            // Response structure: { success: true, data: { data: [subs], meta: ... } }
-            return response.data.data?.data || [];
+            // Response structure from subscription.controller is direct JSON: { data: [subs], meta: ... }
+            // It does NOT use sendSuccess wrapper.
+            return response.data.data || [];
         } catch (error: any) {
             logWithContext('RealBackend', 'Error fetching subscriptions', { error: error.message }, 'error');
             return [];
