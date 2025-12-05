@@ -1,5 +1,4 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
-import crypto from 'crypto';
 
 export const verifyWebhook = async (request: FastifyRequest, reply: FastifyReply) => {
     const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
