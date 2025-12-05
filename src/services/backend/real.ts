@@ -46,7 +46,14 @@ export class RealBackendService implements IBackendService {
             });
             // Response structure: { success: true, data: { data: [users], meta: ... } }
             if (response.data.data && response.data.data.data && response.data.data.data.length > 0) {
-                return response.data.data.data[0];
+                const users = response.data.data.data;
+                // Find exact match
+                const exactMatch = users.find((u: User) => u.mobileNumber === mobile);
+                if (exactMatch) {
+                    return exactMatch;
+                }
+                // Fallback to first result if no exact match (though exact match is preferred)
+                return users[0];
             }
             return null;
         } catch (error: any) {

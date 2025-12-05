@@ -14,7 +14,8 @@ export const handleTextMessage = async (from: string, messageBody: string, name:
             `Welcome to Gyms24, ${name}! 🏋️‍♂️\n\nYour complete gym booking platform. How can we help you today?`,
             [
                 { id: 'book_membership', title: 'Book Membership' },
-                { id: 'my_memberships', title: 'My Memberships' }
+                { id: 'my_memberships', title: 'My Memberships' },
+                { id: 'get_otp', title: 'Get OTP' }
             ]
         );
         return;
